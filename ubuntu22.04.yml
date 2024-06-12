@@ -1,0 +1,65 @@
+---
+- hosts: localhost
+  become: yes
+  vars:
+    common_packages:
+      - curl
+      - vim
+      - git
+      - htop
+      - build-essential
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - wget
+    docker_packages:
+      - docker-ce
+    other_packages:
+      - chromium-browser
+      - vlc
+    user_name: bogdan
+
+  tasks:
+    - name: Update apt repository and cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade all packages to the latest version
+      apt:
+        upgrade: dist
+
+    - name: Install common packages
+      apt:
+        name: "{{ common_packages }}"
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: "{{ docker_packages }}"
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ bogdan }}"
+        groups: docker
+        append: yes
+
+    - name: Install Visual Studio Code
+      apt:
+        name: code
+        state: present
+
+    - name: Clean up APT when done
+      apt:
+        autoclean: yes
+        autoremove: yes
